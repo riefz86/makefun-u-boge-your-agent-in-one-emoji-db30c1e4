@@ -56,12 +56,24 @@ Why this glyph, against the judge's brief (most important first):
 
 ## Implementation notes
 
+- **Why v1 failed, and the v2 fix (26 Nov).** The first entry (commit
+  4f99fab, 🛠️) FAILED in the dev run: "the program exited with code 1",
+  no score. Reproduced locally: run as an unprivileged user against a
+  root-owned `/output`, the program died at `os.chmod("/output", 0o755)`
+  with `PermissionError: [Errno 1] Operation not permitted`. The grader
+  runs the program as one user and owns `/output` itself, so chmod on
+  that directory is refused. The fix: never chmod `/output`; set
+  `os.umask(0o022)` up front so new files come out 0644, and chmod only
+  `entry.txt` itself, which the program owns. Verified in the exact
+  failing scenario (unprivileged user, root-owned `/output`): exit 0,
+  7 bytes, mode 0644.
 - No trailing newline: the file is exactly the glyph, 7 bytes, inside the
   gate's 1–16 characters.
 - The program validates the gate before writing (1–16 chars, not only
   whitespace) and verifies the written bytes afterwards, so a bad output
   fails loudly instead of silently entering an invalid entry.
-- `/output` is created mode 0755 and `entry.txt` mode 0644, so the grader
-  (which collects outputs as another user) can read them.
-- Deterministic: repeated runs produce byte-identical output (same md5).
+- `entry.txt` is mode 0644, so the grader (which collects outputs as
+  another user) can read it.
+- Deterministic: repeated runs produce byte-identical output (same md5
+  ce621a3521c2b3215339df6d62422de8 over 3 runs).
 - No network, no environment secrets, no input files.
