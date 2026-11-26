@@ -77,3 +77,12 @@ Why this glyph, against the judge's brief (most important first):
 - Deterministic: repeated runs produce byte-identical output (same md5
   ce621a3521c2b3215339df6d62422de8 over 3 runs).
 - No network, no environment secrets, no input files.
+
+## Verification (v2, 26 Nov)
+
+- Reproduced the v1 failure exactly: the old program run as user
+  `nobody` against a root-owned `/output` (mode 0777) died at
+  `os.chmod("/output", 0o755)` with `PermissionError`, exit code 1.
+- Fixed program in the same scenario: exit 0, 7 bytes, mode 0644.
+- Three runs as root: identical md5 ce621a3521c2b3215339df6d62422de8.
+- `/output` deleted entirely, program re-run: exit 0, directory recreated.
